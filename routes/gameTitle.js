@@ -1,24 +1,11 @@
 const express = require('express');
 const redisClient = require("../database_config/redis")
-const router = express.Router();
+let router = express.Router();
 const axios = require('axios');
 
-router.get('/', (req, res) => {
-    try {
-        res.status(200);
-        res.send({
-            message: "This is the game search root."
-        })
-        return;
-    } catch (err) {
-        res.status(500).send ({
-            message: "Could not reach page."
-        })
-    }
-})
-
-router.get('/search', async (req, res) => {
-    let title = req.query.title; // adds '/games/search?title=<title>'
+router.get('/', async (req, res) => {
+    let title = req.query.title; // adds '/games?title=<title>'
+    let slug = title.split(' ').join('-');
     let result;
     let isCached;
 
@@ -37,7 +24,7 @@ router.get('/search', async (req, res) => {
             result = JSON.parse(cachedData);
             console.log('Search was found in cache');
         } else {
-            const url = `${process.env.URL_RAWG}/games?${process.env.API_KEY}&name=${title}`;
+            const url = `${process.env.URL_RAWG}/games/${slug}?key=${process.env.API_KEY}`;
             const response = await axios.get(url);
             result = response.data;
             console.log('Search used API');

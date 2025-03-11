@@ -1,11 +1,12 @@
+require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
-require('dotenv').config();
+const apiRouter = require('./startup/routesIndex');
 
 const app = express();
 
-// Says to import a function which can the 
-require('./startup/routes')(app);
+app.use(express.json());
+app.use('/', apiRouter);
 
 const PORT = process.env.PORT;
 
