@@ -9,7 +9,7 @@ const router = express.Router();
 router
     .use('/home', home)
     .use('/games', gameTitle)
-    // .use('/developer', gameDev)
+    .use('/developers', gameDev)
     // .use('/publisher', gamePub);
 
 module.exports = router;

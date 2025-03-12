@@ -5,20 +5,22 @@ const axios = require('axios');
 
 router.get('/', async (req, res) => {
     let title = req.query.title; // adds '/games?title=<title>'
-    let slug = title.split(' ').join('-');
+    let slug;
     let result;
     let isCached;
 
     if (!title) {
         res.status(400).send ({
-            message: "Please enter the title of the game you want."
+            message: "Please enter the game title you'd like in search query. Example: https://localhost:3000/games?title=Grand Theft Auto V"
         })
         return;
     }
 
+    slug = title.trim().split(' ').join('-').toLowerCase();
+
     try {
         // First check cache
-        const cachedData = await redisClient.get(title) // awaits on Promise (title) before checking/parsing
+        const cachedData = await redisClient.get(slug) // awaits on Promise (title) before checking/parsing
         if (cachedData) {
             isCached = true;
             result = JSON.parse(cachedData);
@@ -27,9 +29,9 @@ router.get('/', async (req, res) => {
             const url = `${process.env.URL_RAWG}/games/${slug}?key=${process.env.API_KEY}`;
             const response = await axios.get(url);
             result = response.data;
-            console.log('Search used API');
+            console.log(`Fetch from API: ${url}`);
 
-            if (result === 0) {
+            if (!result || Object.keys(result).length === 0) {
                 res.status(400).send ({
                     message: "API returned empty data array!"
                 })
@@ -37,7 +39,7 @@ router.get('/', async (req, res) => {
             }
         }
         // Cache new game data
-        await redisClient.set(location, JSON.stringify(result), {
+        await redisClient.set(slug, JSON.stringify(result), {
             EX: 300,
             NX: true,
         })
